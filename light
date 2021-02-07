@@ -1,8 +1,10 @@
 #!/bin/bash
 
-source `pipenv --venv`/bin/activate
+BASEDIR=$(dirname "$0")
+
+source $BASEDIR/lc/bin/activate
 if [ $? -eq 0 ]; then
-	python LightControl.py "$@"
+	python $BASEDIR/LightControl.py "$@"
 else
 	printf "The virtual environment failed to activate.\n"
 fi

@@ -1,20 +1,14 @@
 import argparse
 import asyncio
-import time
 import os
 import sys
+import time
+
 from dotenv import load_dotenv
 from kasa import SmartPlug
+
 from verify_ip import verify_ip
 
-
-
-# plug = SmartPlug('172.16.15.85')
-# asyncio.run(plug.update())
-
-# asyncio.run(plug.turn_on())
-# time.sleep(10)
-# asyncio.run(plug.turn_off())
 
 class LightControl:
 
@@ -38,6 +32,9 @@ class LightControl:
 			self._debug('loading ip from environment', 3)
 			load_dotenv()
 			self._ip = os.getenv('LIGHT_CONTROL_IP_ADDR')
+		if self._ip is None:
+			self._debug(f'Invalid IP address (actual {self._ip} expected XX.XX.XX.XX)')
+			sys.exit()
 		if verify_ip(self._ip) == False:
 			self._debug(f'Invalid IP address (actual {self._ip} expected XX.XX.XX.XX)')
 			sys.exit()
