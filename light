@@ -1,0 +1,8 @@
+#!/bin/bash
+
+source `pipenv --venv`/bin/activate
+if [ $? -eq 0 ]; then
+	python LightControl.py "$@"
+else
+	printf "The virtual environment failed to activate.\n"
+fi
