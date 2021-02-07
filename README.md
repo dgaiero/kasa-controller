@@ -54,7 +54,7 @@ repository directory:
 echo LIGHT_CONTROL_IP_ADDR=XX.XX.XX.XX >> .env # replace XX.XX.XX.XX with your IP address
 ```
 
-```shell
+```text
 usage: light [-h] [--verbose] [-ip IP] {on,off}
 
 positional arguments:
