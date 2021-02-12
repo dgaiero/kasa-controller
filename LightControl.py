@@ -25,7 +25,7 @@ class LightControl:
 
 	def parse_args(self):
 		parser = argparse.ArgumentParser(prog="light")
-		parser.add_argument('command', choices=['on', 'off'])
+		parser.add_argument('command', choices=['on', 'off', 'status'])
 		parser.add_argument('--verbose', '-v', action='count', default=0)
 		parser.add_argument('-ip', help='IP address of smart plug', default=None)
 		self._args = parser.parse_args()
@@ -47,8 +47,12 @@ class LightControl:
 		self._initalize_device()
 		if self._args.command == 'on':
 			self._on()
-		else:
+		elif self._args.command == 'off':
 			self._off()
+		elif self._args.command == 'status':
+			self._status()
+		else:
+			print(f"command not valid (actual {self._args.command} expected one of {'on', 'off', 'status'}")
 
 	def _initalize_device(self):
 		# self._ip
@@ -59,16 +63,23 @@ class LightControl:
 	def _on(self):
 		asyncio.run(self._plug.turn_on())
 		if self._verify_state(True):
-			self._debug('plug is turned on', 1)
+			self._debug('light is turned on', 1)
 		else:
-			self._debug('plug failed to turn on')
+			self._debug('light failed to turn on')
 
 	def _off(self):
 		asyncio.run(self._plug.turn_off())
 		if self._verify_state(False):
-			self._debug('plug is turned off', 1)
+			self._debug('light is turned off', 1)
 		else:
-			self._debug('plug failed to turn off')
+			self._debug('light failed to turn off')
+
+	def _status(self):
+		if self._verify_state(True):
+			self._debug('light is turned on', 0)
+		else:
+			self._debug('light is turned off', 0)
+
 
 	def _verify_state(self, state):
 		asyncio.run(self._plug.update())
