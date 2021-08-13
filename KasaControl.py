@@ -1,16 +1,18 @@
 import argparse
 import asyncio
 import os
+import platform
 import sys
 import time
 
 from dotenv import load_dotenv
 from kasa import SmartPlug
+from kasa.exceptions import SmartDeviceException
 
 from verify_ip import verify_ip
 
 
-class LightControl:
+class KasaControl:
 
 	def __init__(self, ip=None):
 		self._ip = ip
@@ -18,7 +20,7 @@ class LightControl:
 		self._args = None
 
 	def parse_args(self):
-		parser = argparse.ArgumentParser(prog="light")
+		parser = argparse.ArgumentParser(prog="kasa")
 		parser.add_argument('command', choices=['on', 'off', 'status'])
 		parser.add_argument('--verbose', '-v', action='count', default=0)
 		parser.add_argument('-ip', help='IP address of smart plug', default=None)
@@ -31,13 +33,13 @@ class LightControl:
 		else:
 			self._debug('loading ip from environment', 3)
 			load_dotenv()
-			self._ip = os.getenv('LIGHT_CONTROL_IP_ADDR')
+			self._ip = os.getenv('KASA_DEVICE_IP_ADDR')
 		if self._ip is None:
 			self._debug(f'Invalid IP address (actual {self._ip} expected XX.XX.XX.XX)')
-			sys.exit()
+			sys.exit(1)
 		if verify_ip(self._ip) == False:
 			self._debug(f'Invalid IP address (actual {self._ip} expected XX.XX.XX.XX)')
-			sys.exit()
+			sys.exit(1)
 		self._debug(f'ip address is set to {self._ip}', 1)
 
 	def run_command(self):
@@ -54,32 +56,40 @@ class LightControl:
 	def _initalize_device(self):
 		# self._ip
 		self._plug = SmartPlug(self._ip)
-		asyncio.run(self._plug.update())
-		self._debug(f'connected to plug: {self._plug.alias}', 1)
+		self._send_command(self._plug.update())
+		try:
+			self._debug(f'connected to plug: {self._plug.alias}', 1)
+		except SmartDeviceException:
+			self._failure()
 
 	def _on(self):
-		asyncio.run(self._plug.turn_on())
+		self._send_command(self._plug.turn_on())
 		if self._verify_state(True):
-			self._debug('light is turned on', 1)
+			self._debug('device is turned on', 1)
 		else:
-			self._debug('light failed to turn on')
+			self._debug('device failed to turn on')
 
 	def _off(self):
-		asyncio.run(self._plug.turn_off())
+		self._send_command(self._plug.turn_off())
 		if self._verify_state(False):
-			self._debug('light is turned off', 1)
+			self._debug('device is turned off', 1)
 		else:
-			self._debug('light failed to turn off')
+			self._debug('device failed to turn off')
 
 	def _status(self):
 		if self._verify_state(True):
-			self._debug('light is turned on', 0)
+			self._debug('device is turned on', 0)
 		else:
-			self._debug('light is turned off', 0)
+			self._debug('device is turned off', 0)
 
+	def _send_command(self, cmd):
+		try:
+			asyncio.run(cmd)
+		except SmartDeviceException:
+			self._failure()
 
 	def _verify_state(self, state):
-		asyncio.run(self._plug.update())
+		self._send_command(self._plug.update())
 		return self._plug.is_on == state
 
 	def _debug(self, msg, level=0):
@@ -87,10 +97,14 @@ class LightControl:
 			print("-"*level, end="")
 			print(msg)
 
+	def _failure(self):
+		self._debug(f'failed to communicate with the device at {self._ip}')
+		sys.exit(1)
+
 def main():
-	light = LightControl()
-	light.parse_args()
-	light.run_command()
+	device = KasaControl()
+	device.parse_args()
+	device.run_command()
 
 if __name__ == "__main__":
 	main()

@@ -1,9 +1,7 @@
 anyio==2.0.2
 asyncclick==7.1.2.3
-dotenv==0.0.5
 idna==3.1
 importlib-metadata==3.4.0
-pkg-resources==0.0.0
 python-dotenv==0.15.0
 python-kasa==0.4.0.dev2
 sniffio==1.2.0

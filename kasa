@@ -4,7 +4,7 @@ BASEDIR=$(dirname "$0")
 
 source $BASEDIR/lc/bin/activate
 if [ $? -eq 0 ]; then
-	python $BASEDIR/LightControl.py "$@"
+	python $BASEDIR/KasaControl.py "$@"
 else
 	printf "The virtual environment failed to activate.\n"
 fi
